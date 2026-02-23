@@ -1,0 +1,27 @@
+{{- if .Values.autoscaling.keda.enabled }}
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: {{ include "common.fullname" . }}
+  labels:
+  {{- include "common.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    name: {{ include "common.fullname" . }}
+  minReplicaCount: {{ .Values.autoscaling.minReplicas }}
+  maxReplicaCount: {{ .Values.autoscaling.maxReplicas }}
+  pollingInterval: {{ .Values.autoscaling.keda.pollingInterval }}
+  cooldownPeriod: 300
+  triggers:
+  {{- if .Values.autoscaling.targetCPUUtilizationPercentage }}
+  - type: cpu
+    metricType: Utilization # Allowed types are 'Utilization' or 'AverageValue'
+    metadata:
+      value: "{{ .Values.autoscaling.targetCPUUtilizationPercentage }}"
+  {{- end }}
+  {{- if .Values.autoscaling.keda.additionaltriggers }}
+  {{- with .Values.autoscaling.keda.additionaltriggers }}
+    {{- toYaml . | nindent 2 }}
+  {{- end }}
+  {{- end }}
+{{- end }}
