@@ -28,6 +28,7 @@ spec:
   ingressClassName: {{ .Values.ingress.ingressClassName }}
 {{- end }}
   rules:
+  {{- if .Values.ingress.hosts }}
   {{- range .Values.ingress.hosts }}
     - host: {{ . }}
       http:
@@ -38,9 +39,23 @@ spec:
           - path: {{ $ingressPath }}
             pathType: Prefix
             backend:
-              service: 
+              service:
                 name: {{ $fullName }}
-                port: 
+                port:
+                  number: {{ $servicePort }}
+  {{- end }}
+  {{- else }}
+    - http:
+        paths:
+{{ if $extraPaths }}
+{{ toYaml $extraPaths | indent 10 }}
+{{- end }}
+          - path: {{ $ingressPath }}
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ $fullName }}
+                port:
                   number: {{ $servicePort }}
   {{- end }}
 {{- end }}
